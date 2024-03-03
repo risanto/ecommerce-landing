@@ -1,71 +1,175 @@
 'use client';
 
+import { Carousel } from '@material-tailwind/react';
 import Head from 'next/head';
-import * as React from 'react';
+import { useEffect, useState } from 'react';
 import '@/lib/env';
 
-import ArrowLink from '@/components/links/ArrowLink';
-import ButtonLink from '@/components/links/ButtonLink';
-import UnderlineLink from '@/components/links/UnderlineLink';
-import UnstyledLink from '@/components/links/UnstyledLink';
+type MainBanner = {
+  pcImageUrl: string;
+  mobileImageUrl: string;
+  title: string;
+  mainBannerId: number;
+};
 
-/**
- * SVGR Support
- * Caveat: No React Props Type.
- *
- * You can override the next-env if the type is important to you
- * @see https://stackoverflow.com/questions/68103844/how-to-override-next-js-svg-module-declaration
- */
-import Logo from '~/svg/Logo.svg';
+type MainShortcut = {
+  imageUrl: string;
+  title: string;
+  mainShortcutId: number;
+};
 
-// !STARTERCONF -> Select !STARTERCONF and CMD + SHIFT + F
-// Before you begin editing, follow all comments with `STARTERCONF`,
-// to customize the default configuration.
+type PdCollection = {
+  id: number;
+  type: string;
+  viewType: string;
+  title: string;
+  subtitle: string;
+  items: {
+    publication: {
+      title: string;
+      rating: number;
+      media: { uri: string }[];
+      priceInfo: {
+        price: number;
+        discountPrice?: number;
+        discountRate?: number;
+        couponDiscountPrice?: number;
+        couponDiscountRate?: number;
+      };
+    };
+  }[];
+};
 
 export default function HomePage() {
+  const [mainBanners, setmainBanners] = useState<MainBanner[]>([]);
+  const [mainShortcuts, setmainShortcuts] = useState<MainShortcut[]>([]);
+  const [pdCollections, setpdCollections] = useState<PdCollection[]>([]);
+
+  async function fetchMainBanners() {
+    fetch('https://api.testvalley.kr/main-banner/all')
+      .then((res) => res.json())
+      .then((data) => {
+        setmainBanners(data);
+      });
+  }
+
+  async function fetchMainShortcuts() {
+    fetch('https://api.testvalley.kr/main-shortcut/all')
+      .then((res) => res.json())
+      .then((data) => {
+        setmainShortcuts(data);
+      });
+  }
+
+  async function fetchPdCollections() {
+    fetch('https://api.testvalley.kr/collections?prearrangedDiscount')
+      .then((res) => res.json())
+      .then((data: { items: PdCollection[] }) => {
+        const filtered = data.items.filter((el) => {
+          return el.type === 'SINGLE' && el.viewType === 'TILE';
+        });
+        setpdCollections(filtered);
+      });
+  }
+
+  useEffect(() => {
+    fetchMainBanners();
+    fetchMainShortcuts();
+    fetchPdCollections();
+  }, []);
+
   return (
     <main>
       <Head>
         <title>Hi</title>
       </Head>
-      <section className='bg-white'>
-        <div className='layout relative flex min-h-screen flex-col items-center justify-center py-12 text-center'>
-          <Logo className='w-16' />
-          <h1 className='mt-4'>Next.js + Tailwind CSS + TypeScript Starter</h1>
-          <p className='mt-2 text-sm text-gray-800'>
-            A starter for Next.js, Tailwind CSS, and TypeScript with Absolute
-            Import, Seo, Link component, pre-configured with Husky{' '}
-          </p>
-          <p className='mt-2 text-sm text-gray-700'>
-            <ArrowLink href='https://github.com/theodorusclarence/ts-nextjs-tailwind-starter'>
-              See the repository
-            </ArrowLink>
-          </p>
 
-          <ButtonLink className='mt-6' href='/components' variant='light'>
-            See all components
-          </ButtonLink>
-
-          <UnstyledLink
-            href='https://vercel.com/new/git/external?repository-url=https%3A%2F%2Fgithub.com%2Ftheodorusclarence%2Fts-nextjs-tailwind-starter'
-            className='mt-4'
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+      <section className='bg-white lg:px-40 pb-20'>
+        <Carousel className='h-1/3'>
+          {mainBanners.map((el) => (
             <img
-              width='92'
-              height='32'
-              src='https://vercel.com/button'
-              alt='Deploy with Vercel'
+              key={el.mainBannerId}
+              src={el.pcImageUrl}
+              alt={el.title}
+              className='h-full w-full object-cover'
             />
-          </UnstyledLink>
+          ))}
+        </Carousel>
 
-          <footer className='absolute bottom-2 text-gray-700'>
-            © {new Date().getFullYear()} By{' '}
-            <UnderlineLink href='https://theodorusclarence.com?ref=tsnextstarter'>
-              Theodorus Clarence
-            </UnderlineLink>
-          </footer>
-        </div>
+        <section className='flex mt-10 justify-between'>
+          {mainShortcuts.map((el) => (
+            <div
+              key={el.mainShortcutId}
+              className='flex flex-col justify-center items-center'
+            >
+              <img src={el.imageUrl} className='w-16' alt='banner' />
+              <div className='text-xs mt-2'>{el.title}</div>
+            </div>
+          ))}
+        </section>
+
+        <section className='flex flex-col justify-between'>
+          {pdCollections.map((el) => (
+            <div className='grid grid-cols-5 mt-14' key={el.id}>
+              <div className='pr-2'>
+                <h2 className='text-2xl font-bold'>{el.title}</h2>
+                <h4 className='text-xs font-normal mt-2 text-[#999999]'>
+                  {el.subtitle}
+                </h4>
+              </div>
+
+              {el.items.slice(0, 4).map((item, idx) => {
+                const pub = item.publication;
+
+                const media = pub.media[0];
+                const priceInfo = pub.priceInfo;
+
+                return (
+                  <div key={idx} className='p-1'>
+                    <img src={media.uri} className='rounded' alt='product' />
+
+                    <h3 className='text-sm font-normal text-ellipsis line-clamp-2'>
+                      {pub.title}
+                    </h3>
+
+                    <div>
+                      {priceInfo.couponDiscountRate ? (
+                        <span className='text-lg text-[#FF5023] font-semibold mr-1'>
+                          {priceInfo.couponDiscountRate}%
+                        </span>
+                      ) : priceInfo.discountRate ? (
+                        <span className='text-lg font-semibold text-[#FF5023] mr-1'>
+                          {priceInfo.discountRate}%
+                        </span>
+                      ) : (
+                        <></>
+                      )}
+
+                      <span className='text-lg font-semibold'>
+                        {(priceInfo.couponDiscountPrice
+                          ? priceInfo.couponDiscountPrice
+                          : priceInfo.discountPrice
+                          ? priceInfo.discountPrice
+                          : priceInfo.price
+                        ).toLocaleString()}
+                      </span>
+
+                      <span className='text-xs'>원</span>
+                    </div>
+
+                    <div className='text-xs inline-flex'>
+                      <img
+                        src='https://www.testvalley.kr/star/star-darkgray.svg'
+                        alt='rating'
+                      />
+                      {pub.rating}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </section>
       </section>
     </main>
   );

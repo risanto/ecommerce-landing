@@ -15,6 +15,7 @@ module.exports = {
   rules: {
     'no-unused-vars': 'off',
     'no-console': 'warn',
+    '@next/next/no-img-element': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     'react/no-unescaped-entities': 'off',
 
