@@ -86,7 +86,7 @@ export default function HomePage() {
       </Head>
 
       <section className='bg-white lg:px-40 pb-20'>
-        <Carousel className='h-1/3'>
+        <Carousel className='h-1/3' placeholder={<></>}>
           {mainBanners.map((el) => (
             <img
               key={el.mainBannerId}
