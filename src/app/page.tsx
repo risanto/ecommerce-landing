@@ -3,6 +3,7 @@
 import { Carousel } from '@material-tailwind/react';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
+import { isMobile } from 'react-device-detect';
 import '@/lib/env';
 
 type MainBanner = {
@@ -89,84 +90,86 @@ export default function HomePage() {
           {mainBanners.map((el) => (
             <img
               key={el.mainBannerId}
-              src={el.pcImageUrl}
+              src={isMobile ? el.mobileImageUrl : el.pcImageUrl}
               alt={el.title}
               className='h-full w-full object-cover'
             />
           ))}
         </Carousel>
 
-        <section className='flex mt-10 justify-between'>
+        <section className='grid grid-cols-5 lg:grid-cols-10 pt-4 px-4 lg:p-0 lg:mt-10 justify-between'>
           {mainShortcuts.map((el) => (
             <div
               key={el.mainShortcutId}
-              className='flex flex-col justify-center items-center'
+              className='flex flex-col justify-center items-center min-w-14 p-1'
             >
-              <img src={el.imageUrl} className='w-16' alt='banner' />
-              <div className='text-xs mt-2'>{el.title}</div>
+              <img src={el.imageUrl} className='w-12 lg:w-16' alt='banner' />
+              <div className='text-[0.7rem] mt-2'>{el.title}</div>
             </div>
           ))}
         </section>
 
-        <section className='flex flex-col justify-between'>
+        <section className='flex flex-col justify-between px-4 lg:p-0 lg:mt-10'>
           {pdCollections.map((el) => (
-            <div className='grid grid-cols-5 mt-14' key={el.id}>
-              <div className='pr-2'>
-                <h2 className='text-2xl font-bold'>{el.title}</h2>
+            <div className='lg:grid lg:grid-cols-8 mt-14' key={el.id}>
+              <div className='pr-2 lg:col-span-2'>
+                <h2 className='lg:text-2xl font-bold'>{el.title}</h2>
                 <h4 className='text-xs font-normal mt-2 text-[#999999]'>
                   {el.subtitle}
                 </h4>
               </div>
 
-              {el.items.slice(0, 4).map((item, idx) => {
-                const pub = item.publication;
+              <div className='grid grid-cols-2 lg:grid-cols-4 lg:col-span-6'>
+                {el.items.slice(0, 4).map((item, idx) => {
+                  const pub = item.publication;
 
-                const media = pub.media[0];
-                const priceInfo = pub.priceInfo;
+                  const media = pub.media[0];
+                  const priceInfo = pub.priceInfo;
 
-                return (
-                  <div key={idx} className='p-1'>
-                    <img src={media.uri} className='rounded' alt='product' />
+                  return (
+                    <div key={idx} className='p-1'>
+                      <img src={media.uri} className='rounded' alt='product' />
 
-                    <h3 className='text-sm font-normal text-ellipsis line-clamp-2'>
-                      {pub.title}
-                    </h3>
+                      <h3 className='text-sm font-normal text-ellipsis line-clamp-2'>
+                        {pub.title}
+                      </h3>
 
-                    <div>
-                      {priceInfo.couponDiscountRate ? (
-                        <span className='text-lg text-[#FF5023] font-semibold mr-1'>
-                          {priceInfo.couponDiscountRate}%
+                      <div>
+                        {priceInfo.couponDiscountRate ? (
+                          <span className='text-lg text-[#FF5023] font-semibold mr-1'>
+                            {priceInfo.couponDiscountRate}%
+                          </span>
+                        ) : priceInfo.discountRate ? (
+                          <span className='text-lg font-semibold text-[#FF5023] mr-1'>
+                            {priceInfo.discountRate}%
+                          </span>
+                        ) : (
+                          <></>
+                        )}
+
+                        <span className='text-lg font-semibold'>
+                          {(priceInfo.couponDiscountPrice
+                            ? priceInfo.couponDiscountPrice
+                            : priceInfo.discountPrice
+                            ? priceInfo.discountPrice
+                            : priceInfo.price
+                          ).toLocaleString()}
                         </span>
-                      ) : priceInfo.discountRate ? (
-                        <span className='text-lg font-semibold text-[#FF5023] mr-1'>
-                          {priceInfo.discountRate}%
-                        </span>
-                      ) : (
-                        <></>
-                      )}
 
-                      <span className='text-lg font-semibold'>
-                        {(priceInfo.couponDiscountPrice
-                          ? priceInfo.couponDiscountPrice
-                          : priceInfo.discountPrice
-                          ? priceInfo.discountPrice
-                          : priceInfo.price
-                        ).toLocaleString()}
-                      </span>
+                        <span className='text-xs'>원</span>
+                      </div>
 
-                      <span className='text-xs'>원</span>
+                      <div className='text-xs inline-flex'>
+                        <img
+                          src='https://www.testvalley.kr/star/star-darkgray.svg'
+                          alt='rating'
+                        />
+                        {pub.rating}
+                      </div>
                     </div>
-
-                    <div className='text-xs inline-flex'>
-                      <img
-                        src='https://www.testvalley.kr/star/star-darkgray.svg'
-                        alt='rating'
-                      />
-                      {pub.rating}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           ))}
         </section>
